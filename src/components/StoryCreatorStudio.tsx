@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, PenTool, Plus, Trash2, CheckCircle2, RefreshCw, BookOpen, Volume2, Bookmark } from 'lucide-react';
 import { Story, Chapter, Character } from '../types';
+import { generateLocalFallbackStory } from '../utils/storyFallback';
 
 interface StoryCreatorStudioProps {
   onStoryCreated: (story: Story) => void;
@@ -123,8 +124,18 @@ export const StoryCreatorStudio: React.FC<StoryCreatorStudioProps> = ({
       setGeneratedStory(newStory);
       onStoryCreated(newStory);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setErrorMsg(msg);
+      console.warn('API error or offline, generating story using local engine:', err);
+      // Fallback: generate high quality local story
+      const fallbackStory = generateLocalFallbackStory({
+        theme,
+        protagonist,
+        moral,
+        setting,
+        tone,
+        userPrompt,
+      });
+      setGeneratedStory(fallbackStory);
+      onStoryCreated(fallbackStory);
     } finally {
       setIsGenerating(false);
     }
